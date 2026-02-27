@@ -1,5 +1,8 @@
 mod eventmsgs;
 
+#[cfg(feature = "filtering")]
+pub mod filtering;
+
 use std::convert::TryInto;
 use std::ffi::OsStr;
 use std::iter::once;
