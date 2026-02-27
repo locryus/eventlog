@@ -9,7 +9,10 @@ use log::{Level, LevelFilter, Metadata, Record, SetLoggerError};
 use registry::{Data, Hive, Security};
 use windows::core::PCWSTR;
 use windows::Win32::Foundation::HANDLE;
-use windows::Win32::System::EventLog::{DeregisterEventSource, RegisterEventSourceW, ReportEventW, EVENTLOG_ERROR_TYPE, EVENTLOG_INFORMATION_TYPE, EVENTLOG_WARNING_TYPE};
+use windows::Win32::System::EventLog::{
+    DeregisterEventSource, RegisterEventSourceW, ReportEventW, EVENTLOG_ERROR_TYPE,
+    EVENTLOG_INFORMATION_TYPE, EVENTLOG_WARNING_TYPE,
+};
 
 use crate::eventmsgs::{MSG_DEBUG, MSG_ERROR, MSG_INFO, MSG_TRACE, MSG_WARNING};
 
@@ -54,8 +57,7 @@ pub enum InitError {
 
 pub fn init(name: &str, level: log::Level) -> Result<(), InitError> {
     let logger = Box::new(EventLog::new(name, level)?);
-    log::set_boxed_logger(logger)
-        .map(|()| log::set_max_level(LevelFilter::Trace))?;
+    log::set_boxed_logger(logger).map(|()| log::set_max_level(LevelFilter::Trace))?;
     Ok(())
 }
 
@@ -79,10 +81,8 @@ pub fn register(name: &str) -> Result<(), Error> {
 impl EventLog {
     pub fn new(name: &str, level: log::Level) -> Result<EventLog, Error> {
         let wide_name = win_string(name);
-        let handle = unsafe {
-            RegisterEventSourceW(None, PCWSTR(wide_name.as_ptr()))?
-        };
-        
+        let handle = unsafe { RegisterEventSourceW(None, PCWSTR(wide_name.as_ptr()))? };
+
         Ok(EventLog { handle, level })
     }
 }
@@ -116,16 +116,7 @@ impl log::Log for EventLog {
         let vec = vec![PCWSTR(msg.as_ptr())];
 
         unsafe {
-            let _ = ReportEventW(
-                self.handle,
-                ty,
-                0,
-                id,
-                None,
-                0,
-                Some(&vec),
-                None,
-            );
+            let _ = ReportEventW(self.handle, ty, 0, id, None, 0, Some(&vec), None);
         };
     }
 
