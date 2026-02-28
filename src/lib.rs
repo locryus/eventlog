@@ -61,17 +61,20 @@ pub enum InitError {
     Set(#[from] SetLoggerError),
 }
 
+/// Initialize backend for the `log` crate.
 pub fn init(name: &str, level: log::Level) -> Result<(), InitError> {
     let logger = Box::new(EventLog::new(name, level)?);
     log::set_boxed_logger(logger).map(|()| log::set_max_level(LevelFilter::Trace))?;
     Ok(())
 }
 
+/// Deregister the application from event log subsystem.
 pub fn deregister(name: &str) -> Result<(), registry::key::Error> {
     let key = Hive::LocalMachine.open(REG_BASEKEY, Security::Read)?;
     key.delete(name, true)
 }
 
+/// Register application with the event log subsystem.
 pub fn register(name: &str) -> Result<(), Error> {
     let current_exe = std::env::current_exe().map_err(|_| Error::ExePathNotFound)?;
     let exe_path = current_exe.to_str().ok_or(Error::ExePathNotFound)?;
