@@ -47,6 +47,7 @@ pub struct EventLog {
 unsafe impl Send for EventLog {}
 unsafe impl Sync for EventLog {}
 
+#[allow(clippy::inline_always)]
 #[inline(always)]
 fn win_string(s: &str) -> Vec<u16> {
     OsStr::new(s).encode_wide().chain(once(0)).collect()
@@ -62,6 +63,9 @@ pub enum InitError {
 }
 
 /// Initialize backend for the `log` crate.
+///
+/// # Errors
+/// [`InitError::Create`] means the event source could not be registered.
 pub fn init(name: &str, level: log::Level) -> Result<(), InitError> {
     let logger = Box::new(EventLog::new(name, level)?);
     log::set_boxed_logger(logger).map(|()| log::set_max_level(LevelFilter::Trace))?;
@@ -69,12 +73,19 @@ pub fn init(name: &str, level: log::Level) -> Result<(), InitError> {
 }
 
 /// Deregister the application from event log subsystem.
+///
+/// # Errors
+/// [`Error`](registry::key::Error) indicates that the event log application name registry value could not be removed.
 pub fn deregister(name: &str) -> Result<(), registry::key::Error> {
     let key = Hive::LocalMachine.open(REG_BASEKEY, Security::Read)?;
     key.delete(name, true)
 }
 
 /// Register application with the event log subsystem.
+///
+/// # Errors
+/// [`Error::ExePathNotFound`] indicates that the executable's path could not be determined or that
+/// it could not be registered as an event message file in the registry.
 pub fn register(name: &str) -> Result<(), Error> {
     let current_exe = std::env::current_exe().map_err(|_| Error::ExePathNotFound)?;
     let exe_path = current_exe.to_str().ok_or(Error::ExePathNotFound)?;
@@ -88,11 +99,17 @@ pub fn register(name: &str) -> Result<(), Error> {
 }
 
 impl EventLog {
-    pub fn new(name: &str, level: log::Level) -> Result<EventLog, Error> {
+    /// Construct an `EventLog` and register service name as a event source with the event log
+    /// subsystem.
+    ///
+    /// # Errors
+    /// Returns [`Error::RegisterSourceFailed`] indicates that the event source could not be
+    /// registered with the Windows event log subsystem.
+    pub fn new(name: &str, level: log::Level) -> Result<Self, Error> {
         let wide_name = win_string(name);
         let handle = unsafe { RegisterEventSourceW(None, PCWSTR(wide_name.as_ptr()))? };
 
-        Ok(EventLog { handle, level })
+        Ok(Self { handle, level })
     }
 }
 
@@ -103,6 +120,7 @@ impl Drop for EventLog {
 }
 
 impl log::Log for EventLog {
+    #[allow(clippy::inline_always)]
     #[inline(always)]
     fn enabled(&self, metadata: &Metadata) -> bool {
         metadata.level() <= self.level

@@ -24,11 +24,11 @@ fn prefix_command(cmd: &str) -> Cow<str> {
 }
 
 #[cfg(windows)]
-fn prefix_command(cmd: &str) -> Cow<str> {
+fn prefix_command(cmd: &str) -> Cow<'_, str> {
     cmd.into()
 }
 
-fn run_tool(cmd: &str, args: &[&str]) -> () {
+fn run_tool(cmd: &str, args: &[&str]) {
     let program = prefix_command(cmd);
     let mut command = Command::new(program.as_ref());
     match command.args(args).output() {
@@ -37,25 +37,19 @@ fn run_tool(cmd: &str, args: &[&str]) -> () {
             println!("{:?}", str::from_utf8(&out.stdout).unwrap());
         }
         Err(err) => {
-            println!("ERROR: Failed to run command: {}, error: {}", program, err);
+            println!("ERROR: Failed to run command: {program}, error: {err}");
         }
     }
 }
 
-fn gen_rust(generated_file: &str, header: &str, origin_hash: &str) -> () {
+fn gen_rust(generated_file: &str, header: &str, origin_hash: &str) {
     let re = Regex::new(REGEX).unwrap();
 
     let file_out = File::create(generated_file).unwrap();
     let mut writer = LineWriter::new(file_out);
 
     writer
-        .write_all(
-            format!(
-                "// Auto-generated from origin with SHA256 {}.\n",
-                origin_hash
-            )
-            .as_bytes(),
-        )
+        .write_all(format!("// Auto-generated from origin with SHA256 {origin_hash}.\n").as_bytes())
         .unwrap();
 
     let file_in = File::open(header).unwrap();
@@ -74,7 +68,7 @@ fn file_hash(f: &str) -> String {
     let mut hasher = Sha256::new();
     let _count = copy(&mut file, &mut hasher).unwrap();
     let formatted = format!("{:x}", hasher.finalize());
-    println!("file={}, hash={}", f, formatted);
+    println!("file={f}, hash={formatted}");
     formatted
 }
 
@@ -84,11 +78,11 @@ fn file_contains(f: &str, needle: &str) -> bool {
         Ok(file) => {
             for line in BufReader::new(file).lines() {
                 if line.unwrap().contains(needle) {
-                    println!("file={} contains {}", f, needle);
+                    println!("file={f} contains {needle}");
                     return true;
                 }
             }
-            println!("file={} does not contain {}", f, needle);
+            println!("file={f} does not contain {needle}");
             false
         }
     }
@@ -96,7 +90,7 @@ fn file_contains(f: &str, needle: &str) -> bool {
 
 fn main() {
     for (key, value) in env::vars() {
-        println!("Env[{}]={}", key, value);
+        println!("Env[{key}]={value}");
     }
 
     let origin_hash = file_hash(INPUT_FILE);
@@ -105,10 +99,7 @@ fn main() {
         const GENERATED_FILE: &str = "res/eventmsgs.rs";
 
         if !file_contains(GENERATED_FILE, &origin_hash) {
-            println!(
-                "Generating {} from {} with hash {}",
-                GENERATED_FILE, INPUT_FILE, origin_hash
-            );
+            println!("Generating {GENERATED_FILE} from {INPUT_FILE} with hash {origin_hash}");
 
             run_tool("mc.exe", &["-U", "-h", "res", "-r", "res", INPUT_FILE]);
             run_tool(
@@ -119,19 +110,15 @@ fn main() {
         }
 
         let dir = env::var("CARGO_MANIFEST_DIR").unwrap();
-        println!("cargo:rustc-link-search=native={}/res", dir);
-        println!("cargo:rustc-link-lib=dylib=eventmsgs");
+        println!("cargo:rustc-link-search=native={dir}/res");
     } else {
         let out_dir = env::var("OUT_DIR").unwrap();
-        let rc = format!("{}/eventmsgs.rc", out_dir);
-        let lib = format!("{}/eventmsgs.lib", out_dir);
-        let header = format!("{}/eventmsgs.h", out_dir);
-        let generated_file = format!("{}/eventmsgs.rs", out_dir);
+        let rc = format!("{out_dir}/eventmsgs.rc");
+        let lib = format!("{out_dir}/eventmsgs.lib");
+        let header = format!("{out_dir}/eventmsgs.h");
+        let generated_file = format!("{out_dir}/eventmsgs.rs");
 
-        println!(
-            "Generating {} from {} with hash {}",
-            generated_file, INPUT_FILE, origin_hash
-        );
+        println!("Generating {generated_file} from {INPUT_FILE} with hash {origin_hash}");
 
         run_tool(
             "windmc",
@@ -140,7 +127,7 @@ fn main() {
         run_tool("windres", &["-v", "-i", &rc, "-o", &lib]);
         gen_rust(&generated_file, &header, &origin_hash);
 
-        println!("cargo:rustc-link-search=native={}", out_dir);
-        println!("cargo:rustc-link-lib=dylib=eventmsgs");
+        println!("cargo:rustc-link-search=native={out_dir}");
     }
+    println!("cargo:rustc-link-lib=dylib=eventmsgs");
 }

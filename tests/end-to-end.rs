@@ -13,7 +13,7 @@ fn end_to_end() {
         .map(char::from)
         .take(16)
         .collect();
-    let log_source = format!("eventlog-test-{}", rand_string);
+    let log_source = format!("eventlog-test-{rand_string}");
 
     // Add log source to Windows registry
     register(&log_source).unwrap();
@@ -31,15 +31,14 @@ fn end_to_end() {
 }
 
 fn log_and_verify_one(level: Level, log_source: &str, entry_type: &str, entry_id: &str, msg: &str) {
-    log!(level, "{}", msg);
+    log!(level, "{msg}");
 
     // Use PowerShell to extract formatted entries from the event log.
     let mut command = Command::new("powershell");
     command.arg("-Command").arg(format!(
-        "Get-EventLog -Newest 1 -LogName Application -Source {} \
+        "Get-EventLog -Newest 1 -LogName Application -Source {log_source} \
          | Select-Object Source, EntryType, EventID, Message \
-         | foreach {{ \"$_\" }}",
-        log_source
+         | foreach {{ \"$_\" }}"
     ));
     let out = command.output().unwrap();
 

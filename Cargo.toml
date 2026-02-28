@@ -40,3 +40,10 @@ sha2 = "0.10.6"
 
 [dev-dependencies]
 rand = "0.8.5"
+
+[lints.clippy]
+all = { level = "warn", priority = -1 }
+cargo = { level = "warn", priority = -1 }
+nursery = { level = "warn", priority = -1 }
+pedantic = { level = "warn", priority = -1 }
+
