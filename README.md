@@ -30,7 +30,7 @@ The five Rust log levels are mapped to Windows [event types](https://docs.micros
 
 ## Requirements
 
-* Rust 1.29+ on Windows with MSVC toolchain
+* Rust 1.58+ on Windows with MSVC toolchain
 * [Windows, optional] [mc.exe](https://docs.microsoft.com/en-us/windows/desktop/wes/message-compiler--mc-exe-) and [rc.exe](https://docs.microsoft.com/en-us/windows/desktop/menurc/resource-compiler) (only required when `eventmsgs.mc` is changed)
 * [Windows, optional] PowerShell (used for the end-to-end test)
 
@@ -40,7 +40,7 @@ The five Rust log levels are mapped to Windows [event types](https://docs.micros
 
 ```toml
 [dependencies]
-eventlog = "0.1.0"
+eventlog = "0.4.0"
 ```
 
 ### Register log source with Windows
@@ -72,6 +72,12 @@ eventlog::deregister("Example Log").unwrap();
 ```
 
 This is usually done during program uninstallation. If your MSI installer (or similar) deregisters your event sources you should not call this.
+
+
+### Support for module level filtering
+
+The feature `filtering` can be used to enable a variant of the event logger which allows per-module log levels using `env_logger`'s filtering engine.
+
 
 ### Internals
 
