@@ -1,6 +1,6 @@
 [package]
 name = "eventlog"
-version = "0.3.0"
+version = "0.3.1"
 authors = ["Brendan Molloy <brendan@bbqsrc.net>"]
 build = "build.rs"
 categories = ["development-tools::debugging", "os::windows-apis"]
