@@ -1,6 +1,9 @@
+#![cfg_attr(docsrs, feature(doc_cfg))]
+
 mod eventmsgs;
 
 #[cfg(feature = "filtering")]
+#[cfg_attr(docsrs, doc(cfg(feature = "filtering")))]
 pub mod filtering;
 
 use std::convert::TryInto;

@@ -14,6 +14,8 @@ edition = "2018"
 [package.metadata.docs.rs]
 default-target = "x86_64-pc-windows-gnu"
 targets = ["x86_64-pc-windows-gnu"]
+all-features = true
+rustdoc-args = ["--cfg", "docsrs", "--generate-link-to-definition"]
 
 [features]
 filtering = ["dep:env_logger"]
