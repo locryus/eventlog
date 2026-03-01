@@ -5,7 +5,10 @@
 
 A [log](https://docs.rs/log)-compatible wrapper around the [Windows Event Log API](https://docs.microsoft.com/en-us/windows/desktop/eventlog/event-logging).
 
-Thanks to Jeroen C. van Gelderen for creating the [winlog](https://gitlab.com/arbitrix/winlog) project from which this is forked.
+## Genealogy
+
+- Jeroen C. van Gelderen created the original [winlog](https://gitlab.com/arbitrix/winlog) project.
+- Brendan Molloy created the `eventlog` fork from `winlog`.
 
 ## Features
 
@@ -35,13 +38,6 @@ The five Rust log levels are mapped to Windows [event types](https://docs.micros
 * [Windows, optional] PowerShell (used for the end-to-end test)
 
 ## Usage
-
-### Cargo.toml
-
-```toml
-[dependencies]
-eventlog = "0.1.0"
-```
 
 ### Register log source with Windows
 
@@ -107,6 +103,11 @@ cargo test
    registry key.
 5. Assert that the retrieved log messages are correct. 
 
+
+### See also
+
+- [`fltevtlog`](https://crates.io/crates/fltevtlog) is a wrapper around
+  `eventlog` that supports `env_logger`'s per-module log level configuration.
 
 ## License
 
