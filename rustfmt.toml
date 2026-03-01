@@ -1,0 +1,14 @@
+blank_lines_upper_bound = 2
+comment_width = 79
+edition = "2024"
+format_strings = true
+max_width = 79
+match_block_trailing_comma = false
+# merge_imports = true
+newline_style = "Unix"
+tab_spaces = 2
+trailing_comma = "Never"
+unstable_features = true
+wrap_comments = true
+#reorder_imports = false
+#reorder_modules = false
