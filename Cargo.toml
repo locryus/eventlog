@@ -5,13 +5,14 @@ authors = ["Brendan Molloy <brendan@bbqsrc.net>"]
 build = "build.rs"
 categories = ["development-tools::debugging", "os::windows-apis"]
 description = "A log-compatible wrapper around the Windows Event Log API"
-repository = "https://github.com/bbqsrc/eventlog"
+repository = "https://github.com/locryus/eventlog"
 keywords = ["eventlog", "logging", "windows"]
 license = "MIT OR Apache-2.0"
 readme = "README.md"
 edition = "2018"
 
 [package.metadata.docs.rs]
+rustdoc-args = ["--generate-link-to-definition"]
 default-target = "x86_64-pc-windows-gnu"
 targets = ["x86_64-pc-windows-gnu"]
 
