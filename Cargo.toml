@@ -17,7 +17,8 @@ targets = ["x86_64-pc-windows-gnu"]
 
 [dependencies]
 log = { version = "0.4.17", features = ["std"] }
-registry = "1.2.2"
+windows-result = "0.4.1"
+windows-registry = "0.6.1"
 thiserror = "1.0.38"
 
 [dependencies.windows]

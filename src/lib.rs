@@ -1,12 +1,10 @@
 mod eventmsgs;
 
-use std::{
-  convert::TryInto, ffi::OsStr, iter::once, os::windows::ffi::OsStrExt
-};
+use std::{ffi::OsStr, iter::once, os::windows::ffi::OsStrExt};
 
 use log::{Level, LevelFilter, Metadata, Record, SetLoggerError};
 
-use registry::{Data, Hive, Security};
+use windows_registry::LOCAL_MACHINE;
 
 use windows::{
   Win32::{
@@ -34,11 +32,8 @@ pub enum Error {
   #[error("Call to RegisterEventSource failed")]
   RegisterSourceFailed(#[from] windows::core::Error),
 
-  #[error("Failed to modify registry key")]
-  RegKey(#[from] registry::key::Error),
-
-  #[error("Failed to modify registry value")]
-  RegValue(#[from] registry::value::Error)
+  #[error("Failed to modify registry key or value")]
+  Registry(#[from] windows_result::Error)
 }
 
 pub struct EventLog {
@@ -72,9 +67,9 @@ pub fn init(name: &str, level: log::Level) -> Result<(), InitError> {
 }
 
 /// # Errors
-pub fn deregister(name: &str) -> Result<(), registry::key::Error> {
-  let key = Hive::LocalMachine.open(REG_BASEKEY, Security::Read)?;
-  key.delete(name, true)
+pub fn deregister(name: &str) -> Result<(), windows_result::Error> {
+  let key = LOCAL_MACHINE.open(REG_BASEKEY)?;
+  key.remove_tree(name)
 }
 
 /// # Errors
@@ -83,12 +78,15 @@ pub fn register(name: &str) -> Result<(), Error> {
     std::env::current_exe().map_err(|_| Error::ExePathNotFound)?;
   let exe_path = current_exe.to_str().ok_or(Error::ExePathNotFound)?;
 
-  let key = Hive::LocalMachine.open(REG_BASEKEY, Security::Write)?;
-  let app_key = key.create(name, Security::Write)?;
-  Ok(app_key.set_value(
-    "EventMessageFile",
-    &Data::String(exe_path.try_into().map_err(|_| Error::ExePathNotFound)?)
-  )?)
+  let base_key = LOCAL_MACHINE.open(REG_BASEKEY).map_err(Error::Registry)?;
+
+  let app_key = base_key.create(name).map_err(Error::Registry)?;
+
+  app_key
+    .set_string("EventMessageFile", exe_path)
+    .map_err(Error::Registry)?;
+
+  Ok(())
 }
 
 impl EventLog {
