@@ -128,3 +128,11 @@ impl log::Log for EventLog {
 
   fn flush(&self) {}
 }
+
+impl std::fmt::Debug for EventLog {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_tuple("Windows Event Logger")
+            .field(&self.level)
+            .finish()
+    }
+}
