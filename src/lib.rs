@@ -1,17 +1,22 @@
 mod eventmsgs;
 
-use std::convert::TryInto;
-use std::ffi::OsStr;
-use std::iter::once;
-use std::os::windows::ffi::OsStrExt;
+use std::{
+  convert::TryInto, ffi::OsStr, iter::once, os::windows::ffi::OsStrExt
+};
 
 use log::{Level, LevelFilter, Metadata, Record, SetLoggerError};
+
 use registry::{Data, Hive, Security};
-use windows::core::PCWSTR;
-use windows::Win32::Foundation::HANDLE;
-use windows::Win32::System::EventLog::{
-  DeregisterEventSource, RegisterEventSourceW, ReportEventW,
-  EVENTLOG_ERROR_TYPE, EVENTLOG_INFORMATION_TYPE, EVENTLOG_WARNING_TYPE
+
+use windows::{
+  core::PCWSTR,
+  Win32::{
+    Foundation::HANDLE,
+    System::EventLog::{
+      DeregisterEventSource, RegisterEventSourceW, ReportEventW,
+      EVENTLOG_ERROR_TYPE, EVENTLOG_INFORMATION_TYPE, EVENTLOG_WARNING_TYPE
+    }
+  }
 };
 
 use crate::eventmsgs::{
@@ -128,3 +133,5 @@ impl log::Log for EventLog {
 
   fn flush(&self) {}
 }
+
+// vim: set ft=rust et sw=2 ts=2 sts=2 cinoptions=2 tw=79 :

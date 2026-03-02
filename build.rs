@@ -1,5 +1,3 @@
-use regex::Regex;
-use sha2::{Digest, Sha256};
 use std::{
   borrow::Cow,
   env,
@@ -8,6 +6,10 @@ use std::{
   process::Command,
   str
 };
+
+use regex::Regex;
+
+use sha2::{Digest, Sha256};
 
 // This regex grabs all MC-generated #define statements and for each it
 // captures 3 groups: name, cast, value. The "cast" group is optional.
@@ -148,3 +150,5 @@ fn main() {
     println!("cargo:rustc-link-lib=dylib=eventmsgs");
   }
 }
+
+// vim: set ft=rust et sw=2 ts=2 sts=2 cinoptions=2 tw=79 :
