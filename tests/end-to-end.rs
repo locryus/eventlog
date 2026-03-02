@@ -3,7 +3,7 @@ extern crate log;
 
 use eventlog::{deregister, init, register};
 use log::Level;
-use rand::{distributions::Alphanumeric, thread_rng, Rng};
+use rand::{Rng, distributions::Alphanumeric, thread_rng};
 use std::{process::Command, str};
 
 #[test]
@@ -13,7 +13,7 @@ fn end_to_end() {
     .map(char::from)
     .take(16)
     .collect();
-  let log_source = format!("eventlog-test-{}", rand_string);
+  let log_source = format!("eventlog-test-{rand_string}");
 
   // Add log source to Windows registry
   register(&log_source).unwrap();
@@ -37,14 +37,13 @@ fn log_and_verify_one(
   entry_id: &str,
   msg: &str
 ) {
-  log!(level, "{}", msg);
+  log!(level, "{msg}");
 
   // Use PowerShell to extract formatted entries from the event log.
   let mut command = Command::new("powershell");
   command.arg("-Command").arg(format!(
-    "Get-EventLog -Newest 1 -LogName Application -Source {} | Select-Object \
-     Source, EntryType, EventID, Message | foreach {{ \"$_\" }}",
-    log_source
+    "Get-EventLog -Newest 1 -LogName Application -Source {log_source} | \
+     Select-Object Source, EntryType, EventID, Message | foreach {{ \"$_\" }}"
   ));
   let out = command.output().unwrap();
 
@@ -56,3 +55,5 @@ fn log_and_verify_one(
     str::from_utf8(&out.stdout).unwrap()
   );
 }
+
+// vim: set ft=rust et sw=2 ts=2 sts=2 cinoptions=2 tw=79 :

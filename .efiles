@@ -2,3 +2,4 @@ Cargo.toml
 build.rs
 src/lib.rs
 src/eventmsgs.rs
+tests/end-to-end.rs

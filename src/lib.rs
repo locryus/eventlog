@@ -9,14 +9,14 @@ use log::{Level, LevelFilter, Metadata, Record, SetLoggerError};
 use registry::{Data, Hive, Security};
 
 use windows::{
-  core::PCWSTR,
   Win32::{
     Foundation::HANDLE,
     System::EventLog::{
-      DeregisterEventSource, RegisterEventSourceW, ReportEventW,
-      EVENTLOG_ERROR_TYPE, EVENTLOG_INFORMATION_TYPE, EVENTLOG_WARNING_TYPE
+      DeregisterEventSource, EVENTLOG_ERROR_TYPE, EVENTLOG_INFORMATION_TYPE,
+      EVENTLOG_WARNING_TYPE, RegisterEventSourceW, ReportEventW
     }
-  }
+  },
+  core::PCWSTR
 };
 
 use crate::eventmsgs::{
@@ -49,7 +49,7 @@ pub struct EventLog {
 unsafe impl Send for EventLog {}
 unsafe impl Sync for EventLog {}
 
-#[inline(always)]
+#[inline]
 fn win_string(s: &str) -> Vec<u16> {
   OsStr::new(s).encode_wide().chain(once(0)).collect()
 }
@@ -63,6 +63,7 @@ pub enum InitError {
   Set(#[from] SetLoggerError)
 }
 
+/// # Errors
 pub fn init(name: &str, level: log::Level) -> Result<(), InitError> {
   let logger = Box::new(EventLog::new(name, level)?);
   log::set_boxed_logger(logger)
@@ -70,11 +71,13 @@ pub fn init(name: &str, level: log::Level) -> Result<(), InitError> {
   Ok(())
 }
 
+/// # Errors
 pub fn deregister(name: &str) -> Result<(), registry::key::Error> {
   let key = Hive::LocalMachine.open(REG_BASEKEY, Security::Read)?;
   key.delete(name, true)
 }
 
+/// # Errors
 pub fn register(name: &str) -> Result<(), Error> {
   let current_exe =
     std::env::current_exe().map_err(|_| Error::ExePathNotFound)?;
@@ -89,12 +92,13 @@ pub fn register(name: &str) -> Result<(), Error> {
 }
 
 impl EventLog {
-  pub fn new(name: &str, level: log::Level) -> Result<EventLog, Error> {
+  /// # Errors
+  pub fn new(name: &str, level: log::Level) -> Result<Self, Error> {
     let wide_name = win_string(name);
     let handle =
       unsafe { RegisterEventSourceW(None, PCWSTR(wide_name.as_ptr()))? };
 
-    Ok(EventLog { handle, level })
+    Ok(Self { handle, level })
   }
 }
 
@@ -105,7 +109,7 @@ impl Drop for EventLog {
 }
 
 impl log::Log for EventLog {
-  #[inline(always)]
+  #[inline]
   fn enabled(&self, metadata: &Metadata) -> bool {
     metadata.level() <= self.level
   }
