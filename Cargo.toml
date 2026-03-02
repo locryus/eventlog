@@ -1,6 +1,6 @@
 [package]
 name = "eventlog"
-version = "0.3.2"
+version = "0.4.0"
 authors = ["Brendan Molloy <brendan@bbqsrc.net>"]
 categories = ["development-tools::debugging", "os::windows-apis"]
 description = "A log-compatible wrapper around the Windows Event Log API"
