@@ -154,7 +154,7 @@ impl log::Log for EventLog {
         // The basic assumption is that logging should basically never fail,
         // but if it does, then tell an attached debugger why.
 
-        let errmsg = format!("ReportEvent() failed ({})\n", e.message());
+        let errmsg = format!("ReportEvent() failed: {}\n", e.message());
         let errmsg = win_string(&errmsg);
 
         OutputDebugStringW(PCWSTR(errmsg.as_ptr()));
