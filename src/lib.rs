@@ -39,6 +39,10 @@ pub enum Error {
   Registry(#[from] windows_result::Error)
 }
 
+/// `log` backend for writing log events to Windows Event Log.
+///
+/// In general, applications should not instantiate this itself.  Call
+/// [`init()`] instead.
 pub struct EventLog {
   handle: HANDLE,
   level: log::Level
@@ -61,7 +65,10 @@ pub enum InitError {
   Set(#[from] SetLoggerError)
 }
 
+/// Initialize backend for the `log` crate.
+///
 /// # Errors
+/// [`InitError::Create`] means the event source could not be registered.
 pub fn init(name: &str, level: log::Level) -> Result<(), InitError> {
   let logger = Box::new(EventLog::new(name, level)?);
   log::set_boxed_logger(logger)
@@ -69,13 +76,22 @@ pub fn init(name: &str, level: log::Level) -> Result<(), InitError> {
   Ok(())
 }
 
+/// Deregister the application from event log subsystem.
+///
 /// # Errors
+/// [`Error`](windows_result::Error) indicates that the event log application
+/// name registry value could not be removed.
 pub fn deregister(name: &str) -> Result<(), windows_result::Error> {
   let key = LOCAL_MACHINE.open(REG_BASEKEY)?;
   key.remove_tree(name)
 }
 
+/// Register application with the event log subsystem.
+///
 /// # Errors
+/// [`Error::ExePathNotFound`] indicates that the executable's path could not
+/// be determined or that it could not be registered as an event message file
+/// in the registry.
 pub fn register(name: &str) -> Result<(), Error> {
   let current_exe =
     std::env::current_exe().map_err(|_| Error::ExePathNotFound)?;
@@ -93,7 +109,12 @@ pub fn register(name: &str) -> Result<(), Error> {
 }
 
 impl EventLog {
+  /// Construct an `EventLog` and register service name as a event source with
+  /// the event log subsystem.
+  ///
   /// # Errors
+  /// Returns [`Error::RegisterSourceFailed`] indicates that the event source
+  /// could not be registered with the Windows event log subsystem.
   pub fn new(name: &str, level: log::Level) -> Result<Self, Error> {
     let wide_name = win_string(name);
     let handle =
