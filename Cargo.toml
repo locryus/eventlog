@@ -27,6 +27,8 @@ features = [
   "Win32_Foundation",
   "Win32_System_EventLog",
   "Win32_Security",
+  "Win32_System_Diagnostics",
+  "Win32_System_Diagnostics_Debug"
 ]
 
 [build-dependencies]
@@ -43,4 +45,6 @@ all = { level = "warn", priority = -1 }
 cargo = { level = "warn", priority = -1 }
 nursery = { level = "warn", priority = -1 }
 pedantic = { level = "warn", priority = -1 }
+
+multiple_crate_versions = "allow"
 
