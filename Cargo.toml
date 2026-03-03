@@ -38,7 +38,7 @@ regex = { version = "1.7.1", default-features = false, features = [
 sha2 = "0.10.6"
 
 [dev-dependencies]
-rand = "0.8.5"
+rand = "0.10.0"
 
 [lints.clippy]
 all = { level = "warn", priority = -1 }

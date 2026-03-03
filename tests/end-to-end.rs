@@ -1,18 +1,20 @@
 #[macro_use]
 extern crate log;
 
-use eventlog::{deregister, init, register};
-use log::Level;
-use rand::{Rng, distributions::Alphanumeric, thread_rng};
 use std::{process::Command, str};
+
+use log::Level;
+
+use eventlog::{deregister, init, register};
+
+use rand::{RngExt, distr::Alphanumeric};
+
 
 #[test]
 fn end_to_end() {
-  let rand_string: String = thread_rng()
-    .sample_iter(&Alphanumeric)
-    .map(char::from)
-    .take(16)
-    .collect();
+  let mut rng = rand::rng();
+  let rand_string: String =
+    (0..16).map(|_| rng.sample(Alphanumeric) as char).collect();
   let log_source = format!("eventlog-test-{rand_string}");
 
   // Add log source to Windows registry
