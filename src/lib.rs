@@ -8,20 +8,16 @@ use windows_registry::LOCAL_MACHINE;
 
 use windows::{
   Win32::{
-    Foundation::{GetLastError, HANDLE, HLOCAL, LocalFree},
+    Foundation::HANDLE,
     System::{
-      Diagnostics::Debug::{
-        FORMAT_MESSAGE_ALLOCATE_BUFFER, FORMAT_MESSAGE_FROM_SYSTEM,
-        FORMAT_MESSAGE_IGNORE_INSERTS, FormatMessageW, OutputDebugStringA,
-        OutputDebugStringW
-      },
+      Diagnostics::Debug::OutputDebugStringW,
       EventLog::{
         DeregisterEventSource, EVENTLOG_ERROR_TYPE, EVENTLOG_INFORMATION_TYPE,
         EVENTLOG_WARNING_TYPE, RegisterEventSourceW, ReportEventW
       }
     }
   },
-  core::{PCSTR, PCWSTR}
+  core::PCWSTR
 };
 
 use crate::eventmsgs::{
@@ -137,47 +133,31 @@ impl log::Log for EventLog {
 
     unsafe {
       // Send the log message to the windows event log
-      let res =
-        ReportEventW(self.handle, ty, 0, id, None, 0, Some(&vec), None);
+      if let Err(e) =
+        ReportEventW(self.handle, ty, 0, id, None, 0, Some(&vec), None)
+      {
+        // If sending a log to the Windows event log fails, we end up in a
+        // little bit of a catch-22.  We want to log the error, but the
+        // logging is clearly not working.
+        //
+        // One possible workaround is to fall back to printing the logging
+        // error to std{out,err}.  However, these aren't always
+        // available (for instance, in a Windows Service context there
+        // is normally no stdio).  And we don't want to silently fail
+        // either.
+        //
+        // As a middle-ground, we'll ask Windows to format the error message to
+        // a string, and then send it to OutputDebugString().  This is
+        // a function that can be used to write messages to a debug
+        // console on an attached debugger.
+        //
+        // The basic assumption is that logging should basically never fail,
+        // but if it does, then tell an attached debugger why.
 
-      // If sending a log to the Windows event log fails, we end up in a little
-      // bit of a catch-22.  We want to log the error, but the logging is
-      // clearly not working.
-      //
-      // One possible workaround is to fall back to printing the logging error
-      // to std{out,err}.  However, these aren't always available (for
-      // instance, in a Windows Service context there is normally no
-      // stdio).  And we don't want to silently fail either.
-      //
-      // As a middle-ground, we'll ask Windows to format the error message to a
-      // string, and then send it to OutputDebugString().  This is a function
-      // that can be used to write messages to a debug console on an attached
-      // debugger.
-      //
-      // The basic assumption is that logging should basically never fail, but
-      // if it does, then tell an attached debugger why.
-      if res.is_err() {
-        let err_code = GetLastError();
-        let mut buffer: *mut u16 = std::ptr::null_mut();
+        let errmsg = format!("ReportEvent() failed ({})\n", e.message());
+        let errmsg = win_string(&errmsg);
 
-        let len = FormatMessageW(
-          FORMAT_MESSAGE_ALLOCATE_BUFFER
-            | FORMAT_MESSAGE_FROM_SYSTEM
-            | FORMAT_MESSAGE_IGNORE_INSERTS,
-          None,
-          err_code.0,
-          0,
-          #[allow(clippy::missing_transmute_annotations)]
-          std::mem::transmute(&mut buffer),
-          0,
-          None
-        );
-
-        if len > 0 && !buffer.is_null() {
-          OutputDebugStringW(PCWSTR(buffer));
-          OutputDebugStringA(PCSTR("\n".as_ptr()));
-          let _ = LocalFree(HLOCAL(buffer.cast()));
-        }
+        OutputDebugStringW(PCWSTR(errmsg.as_ptr()));
       }
     };
   }
