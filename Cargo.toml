@@ -9,6 +9,17 @@ keywords = ["eventlog", "logging", "windows"]
 license = "MIT OR Apache-2.0"
 edition = "2018"
 rust-version = "1.58.0"
+exclude = [
+  ".github",
+  ".efiles",
+  ".gitattributes",
+  ".gitignore",
+  ".gitlab-ci.yml",
+  "tests",
+  "bacon.toml",
+  "CHANGELOG.md",
+  "rustfmt.toml"
+]
 
 [package.metadata.docs.rs]
 rustdoc-args = ["--generate-link-to-definition"]
