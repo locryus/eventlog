@@ -8,6 +8,14 @@
 
 ### Changed
 
+### Removed
+
+---
+
+## [0.4.0] - 2026-03-05
+
+### Changed
+
 - Project has a new home.  Many thanks to Brendan Molloy for his work on
   `eventlog` and for handing passing on the torch when he did not want to
   maintain it any longer.
@@ -17,8 +25,4 @@
   `OutputDebugString()`.
 - Configure clippy to be more pedantic.
 - Deprecation fix: rename `.cargo/config` to `.cargo/config.toml`.
-
-### Removed
-
----
 
